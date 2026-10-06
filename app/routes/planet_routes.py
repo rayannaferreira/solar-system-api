@@ -32,14 +32,16 @@ def get_one_planet(planet_id):
     except ValueError:
         return {"message": f"planet {planet_id} invalid"}, 400
 
-    for planet in planets:
-        if planet.id == planet_id:
-            return {
-                "id": planet.id,
-                "name": planet.name,
-                "description": planet.description,
-                "distance_from_sun": planet.distance_from_sun
-            }
+    query = db.select(Planet).where(Planet.id == planet_id)
+    planet = db.session.execute(query).scalar_one_or_none()
+
+    if planet:
+        return {
+            "id": planet.id,
+            "name": planet.name,
+            "description": planet.description,
+            "distance_from_sun": planet.distance_from_sun
+        }
 
     return {"message": f"planet {planet_id} not found"}, 404
 
