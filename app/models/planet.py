@@ -1,9 +1,16 @@
-class Planet:
-    def __init__(self, id, name, description, distance_from_sun):
-        self.id = id
-        self.name = name
-        self.description = description
-        self.distance_from_sun = distance_from_sun
+from sqlalchemy.orm import Mapped, mapped_column
+from ..db import db
+class Planet(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    title: Mapped[str]
+    description: Mapped[str]
+    distance_from_sun: Mapped[float]
+
+    #def __init__(self, id, name, description, distance_from_sun):
+    #    self.id = id
+    #    self.name = name
+    #    self.description = description
+    #    self.distance_from_sun = distance_from_sun
 
 
 planets = [
