@@ -1,5 +1,8 @@
 # Solar System API
 
+[![Python CI](https://github.com/rayannaferreira/solar-system-api/actions/workflows/python-ci.yml/badge.svg)](https://github.com/rayannaferreira/solar-system-api/actions/workflows/python-ci.yml)
+
+
 ## Goal
 
 
