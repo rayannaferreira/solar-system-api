@@ -42,23 +42,15 @@ def get_all_planets():
 
 @planets_bp.get("/<planet_id>")
 def get_one_planet(planet_id):
-    try:
-        planet_id = int(planet_id)
-    except ValueError:
-        return {"message": f"planet {planet_id} invalid"}, 400
+    planet = validate_planet(planet_id)
 
-    query = db.select(Planet).where(Planet.id == planet_id)
-    planet = db.session.execute(query).scalar_one_or_none()
+    return {
+        "id": planet.id,
+        "name": planet.name,
+        "description": planet.description,
+        "distance_from_sun": planet.distance_from_sun
+    }, 200
 
-    if planet:
-        return {
-            "id": planet.id,
-            "name": planet.name,
-            "description": planet.description,
-            "distance_from_sun": planet.distance_from_sun
-        }
-
-    return {"message": f"planet {planet_id} not found"}, 404
 
 @planets_bp.post("")
 def create_planet():
@@ -93,59 +85,57 @@ def create_planet():
 
 @planets_bp.put("/<planet_id>")
 def update_planet(planet_id):
-    try:
-        planet_id = int(planet_id)
-    except ValueError:
-        return {"message": f"planet {planet_id} invalid"}, 400
+    planet = validate_planet(planet_id)
 
-    query = db.select(Planet).where(Planet.id == planet_id)
-    planet = db.session.execute(query).scalar_one_or_none()
+    request_body = request.get_json()
+    required_fields = ("name", "description", "distance_from_sun")
 
-    if planet:
-        request_body = request.get_json()
-        required_fields = ("name", "description", "distance_from_sun")
             
-        if not isinstance(request_body, dict):
-            return {"message": "Expected a JSON object"}, 400
+    if not isinstance(request_body, dict):
+        return {"message": "Expected a JSON object"}, 400
         
-        for field in required_fields:
-            if field not in request_body:
-                return {"message": f"Missing field: {field}"}, 400
+    for field in required_fields:
+        if field not in request_body:
+            return {"message": f"Missing field: {field}"}, 400
             
-        name = request_body["name"]
-        description = request_body["description"]
-        distance_from_sun = request_body["distance_from_sun"]
+    name = request_body["name"]
+    description = request_body["description"]
+    distance_from_sun = request_body["distance_from_sun"]
 
-        planet.name = name
-        planet.description = description
-        planet.distance_from_sun = distance_from_sun
+    planet.name = name
+    planet.description = description
+    planet.distance_from_sun = distance_from_sun
 
-        db.session.commit()
+    db.session.commit()
 
-        return {
-            "id": planet.id,
-            "name": planet.name,
-            "description": planet.description,
-            "distance_from_sun": planet.distance_from_sun
-        }, 200
-
-    return {"message": f"planet {planet_id} not found"}, 404
+    return {
+        "id": planet.id,
+        "name": planet.name,
+        "description": planet.description,
+        "distance_from_sun": planet.distance_from_sun
+    }, 200
 
 
 @planets_bp.delete("/<planet_id>")
 def delete_planet(planet_id):
+    planet = validate_planet(planet_id)
+
+    db.session.delete(planet)
+    db.session.commit()
+
+    return {"message": f"planet {planet_id} deleted successfully"}, 200
+
+
+def validate_planet(id):
     try:
-        planet_id = int(planet_id)
+        id = int(id)
     except ValueError:
-        return {"message": f"planet {planet_id} invalid"}, 400
+        abort(make_response({"message": f"planet {id} invalid"}, 400))
 
-    query = db.select(Planet).where(Planet.id == planet_id)
-    planet = db.session.execute(query).scalar_one_or_none()
+    query = db.select(Planet).where(Planet.id == id)
+    planet = db.session.scalar(query)
 
-    if planet:
-        db.session.delete(planet)
-        db.session.commit()
+    if not planet:
+        abort(make_response({"message": f"planet {id} not found"}, 404))
 
-        return {"message": f"planet {planet_id} deleted successfully"}, 200
-
-    return {"message": f"planet {planet_id} not found"}, 404
+    return planet
