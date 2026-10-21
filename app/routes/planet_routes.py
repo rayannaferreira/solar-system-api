@@ -1,3 +1,4 @@
+import math
 from flask import Blueprint, abort, make_response, request, Response
 from app.models.planet import Planet
 from ..db import db
@@ -37,6 +38,11 @@ def get_all_planets():
                 "message": "max_distance must be a number"
             }, 400))
 
+        if not math.isfinite(max_distance):
+            abort(make_response({
+            "message": "max_distance must be a finite number"
+        }, 400))       
+             
         query = query.where(
             Planet.distance_from_sun <= max_distance
         )
@@ -47,6 +53,11 @@ def get_all_planets():
         except ValueError:
             abort(make_response({
                 "message": "min_distance must be a number"
+            }, 400))
+
+        if not math.isfinite(min_distance):
+            abort(make_response({
+                "message": "min_distance must be a finite number"
             }, 400))
 
         query = query.where(
