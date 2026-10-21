@@ -10,12 +10,11 @@ planets_bp = Blueprint("planets_bp", __name__, url_prefix="/planets")
 
 @planets_bp.get("")
 def get_all_planets():
-    """Applies optional filters for partial name matches, partial
-    description matches, and minimum or maximum distance from the Sun.
-    Converts distance parameters to floats and returns HTTP 400 if
-    either value is not numeric. Orders the results by planet ID,
-    executes the query, and returns the matching planets as a JSON
-    list with HTTP 200.
+    """Apply optional name and description filters and minimum or
+    maximum distance filters. Validate distance parameters as finite
+    numbers, returning HTTP 400 - Bad Request if invalid. Order results 
+    by planet ID and return the matching planets as dictionaries with
+    HTTP 200 - OK.
     """
     
     query = db.select(Planet)
@@ -85,10 +84,10 @@ def get_one_planet(planet_id):
 
 @planets_bp.post("")
 def create_planet():
-    """Reads the incoming JSON data and checks that it is a dictionary
-    containing the required name, description, and distance_from_sun
-    fields. Creates a Planet instance using these values, adds it to
-    the database session, and commits the transaction.
+    """Validate the incoming JSON data and check for required fields.
+    Create a Planet instance using from_dict(), add it to the database
+    session, and commit the transaction. Return the planet's dictionary
+    representation with HTTP 201 - Created.
     """
 
     request_body = request.get_json()
@@ -113,7 +112,7 @@ def create_planet():
 def update_planet(planet_id):
     """ Updates the planet's name, description, and distance from
     the Sun, commits the changes, and returns the updated planet
-    as JSON with HTTP 200.
+    as JSON with HTTP 200 - OK.
     """
 
     planet = validate_model(Planet, planet_id)
@@ -144,9 +143,9 @@ def update_planet(planet_id):
 
 @planets_bp.delete("/<planet_id>")
 def delete_planet(planet_id):
-    """Calls validate_planet() to ensure the ID is valid and the planet
-    exists. Deletes the planet from the database session, commits the
-    transaction, and returns an empty response with HTTP 204 No Content.
+    """Validate the planet ID and retrieve the matching Planet instance.
+    Delete the planet from the database session, commit the transaction,
+    and return an empty response with HTTP 204 - No Content.
     """
 
     planet = validate_model(Planet, planet_id)

@@ -9,6 +9,8 @@ class Planet(db.Model):
     distance_from_sun: Mapped[float]
 
     def to_dict(self):
+        """Return the planet's attributes as a dictionary."""
+
         return {
             "id": self.id,
             "name": self.name,
@@ -18,6 +20,10 @@ class Planet(db.Model):
 
     @classmethod
     def from_dict(cls, planet_data):
+        """Create a Planet instance from a dictionary of planet data. 
+        Uses cls instead of Planet to create an instance of the class
+        that calls this method, allowing subclasses to reuse the method
+        and create instances of their own class."""
         return cls(
             name=planet_data["name"],
             description=planet_data["description"],
