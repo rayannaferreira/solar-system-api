@@ -1,4 +1,4 @@
-from flask import Blueprint, abort, make_response, request
+from flask import Blueprint, abort, make_response, request, Response
 from app.models.planet import Planet
 from ..db import db
 
@@ -144,7 +144,7 @@ def delete_planet(planet_id):
     db.session.delete(planet)
     db.session.commit()
 
-    return {"message": f"planet {planet_id} deleted successfully"}, 200
+    return Response(status=204, mimetype="application/json")
 
 
 def validate_planet(id):

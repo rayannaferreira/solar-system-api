@@ -125,10 +125,9 @@ def test_update_planet_missing_field(client, add_one_planet):
 def test_delete_one_planet(client, add_one_planet):
     response = client.delete("/planets/1")
 
-    assert response.status_code == 200
-    assert response.get_json() == {
-        "message": "planet 1 deleted successfully"
-    }
+    assert response.status_code == 204
+    assert response.data == b""
+
 
 
 def test_delete_planet_not_found(client):
