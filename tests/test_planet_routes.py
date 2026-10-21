@@ -1,4 +1,3 @@
-
 def test_get_all_planets_with_no_records(client):
     response = client.get("/planets")
 
