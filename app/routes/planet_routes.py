@@ -8,7 +8,14 @@ planets_bp = Blueprint("planets_bp", __name__, url_prefix="/planets")
 
 @planets_bp.get("")
 def get_all_planets():
-
+    """Applies optional filters for partial name matches, partial
+    description matches, and minimum or maximum distance from the Sun.
+    Converts distance parameters to floats and returns HTTP 400 if
+    either value is not numeric. Orders the results by planet ID,
+    executes the query, and returns the matching planets as a JSON
+    list with HTTP 200.
+    """
+    
     query = db.select(Planet)
 
     name = request.args.get("name")
@@ -63,6 +70,10 @@ def get_all_planets():
 
 @planets_bp.get("/<planet_id>")
 def get_one_planet(planet_id):
+    """Calls validate_planet() to convert the supplied ID to an integer
+    and retrieve the corresponding database record.
+    """
+
     planet = validate_planet(planet_id)
 
     return {
@@ -75,6 +86,12 @@ def get_one_planet(planet_id):
 
 @planets_bp.post("")
 def create_planet():
+    """Reads the incoming JSON data and checks that it is a dictionary
+    containing the required name, description, and distance_from_sun
+    fields. Creates a Planet instance using these values, adds it to
+    the database session, and commits the transaction.
+    """
+
     request_body = request.get_json()
 
     required_fields = ("name", "description", "distance_from_sun")
@@ -106,6 +123,11 @@ def create_planet():
 
 @planets_bp.put("/<planet_id>")
 def update_planet(planet_id):
+    """ Updates the planet's name, description, and distance from
+    the Sun, commits the changes, and returns the updated planet
+    as JSON with HTTP 200.
+    """
+
     planet = validate_planet(planet_id)
 
     request_body = request.get_json()
@@ -139,6 +161,11 @@ def update_planet(planet_id):
 
 @planets_bp.delete("/<planet_id>")
 def delete_planet(planet_id):
+    """Calls validate_planet() to ensure the ID is valid and the planet
+    exists. Deletes the planet from the database session, commits the
+    transaction, and returns an empty response with HTTP 204 No Content.
+    """
+
     planet = validate_planet(planet_id)
 
     db.session.delete(planet)
@@ -148,6 +175,13 @@ def delete_planet(planet_id):
 
 
 def validate_planet(id):
+    """Attempts to convert the supplied ID to an integer. If conversion
+    fails, aborts the request with HTTP 400. Otherwise, creates a
+    SQLAlchemy query to find a planet with the matching ID and retrieves
+    it using db.session.scalar(). If no planet exists, aborts with HTTP 404. 
+    Returns the Planet instance when validation succeeds.
+    """
+
     try:
         id = int(id)
     except ValueError:
