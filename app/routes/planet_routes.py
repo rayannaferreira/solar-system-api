@@ -2,6 +2,7 @@ import math
 from flask import Blueprint, abort, make_response, request, Response
 from app.models.planet import Planet
 from ..db import db
+from .planet_moons_routes import planet_moons_bp
 
 planets_bp = Blueprint("planets_bp", __name__, url_prefix="/planets")
 
@@ -184,6 +185,10 @@ def delete_planet(planet_id):
 
     return Response(status=204, mimetype="application/json")
 
+"""
+PLANET NESTED ROUTES REGISTRATION
+"""
+planets_bp.register_blueprint(planet_moons_bp, url_prefix="/<planet_id>/moons")
 
 def validate_planet(id):
     """Attempts to convert the supplied ID to an integer. If conversion
