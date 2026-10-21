@@ -5,39 +5,60 @@ from ..db import db
 planets_bp = Blueprint("planets_bp", __name__, url_prefix="/planets")
 
 
+
 @planets_bp.get("")
 def get_all_planets():
-    description = request.args.get("description")
-    max_distance = request.args.get("max_distance")
-    min_distance = request.args.get("min_distance")
 
     query = db.select(Planet)
 
+    name = request.args.get("name")
+    if name:
+        query = query.where(Planet.name.ilike(f"%{name}%"))
+
+    description = request.args.get("description")
     if description:
         query = query.where(Planet.description.ilike(f"%{description}%"))
 
+    max_distance = request.args.get("max_distance")
+    min_distance = request.args.get("min_distance")
+
     if max_distance is not None:
-        query = query.where(Planet.distance_from_sun <= max_distance)
+        try:
+            max_distance = float(max_distance)
+        except ValueError:
+            abort(make_response({
+                "message": "max_distance must be a number"
+            }, 400))
+
+        query = query.where(
+            Planet.distance_from_sun <= max_distance
+        )
 
     if min_distance is not None:
-        query = query.where(Planet.distance_from_sun >= min_distance)
+        try:
+            min_distance = float(min_distance)
+        except ValueError:
+            abort(make_response({
+                "message": "min_distance must be a number"
+            }, 400))
+
+        query = query.where(
+            Planet.distance_from_sun >= min_distance
+        )
 
     query = query.order_by(Planet.id)
     planets = db.session.execute(query).scalars()
 
-    planets_response = []
+    return [
+        {
+            "id": planet.id,
+            "name": planet.name,
+            "description": planet.description,
+            "distance_from_sun": planet.distance_from_sun,
+        }
+        for planet in planets
+    ], 200
 
-    for planet in planets:
-        planets_response.append(
-            {
-                "id": planet.id,
-                "name": planet.name,
-                "description": planet.description,
-                "distance_from_sun": planet.distance_from_sun
-            }
-        )
-
-    return planets_response
 
 
 @planets_bp.get("/<planet_id>")
