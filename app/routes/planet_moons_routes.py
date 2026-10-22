@@ -2,6 +2,7 @@ import math
 from flask import Blueprint, abort, make_response, request, Response
 from app.models.planet import Planet
 from app.models.moon import Moon
+from .route_utilities import validate_model, create_model
 from ..db import db
 
 planet_moons_bp = Blueprint("planet_moons_bp", __name__)
@@ -21,13 +22,4 @@ def add_moon_to_planet(planet_id):
     request_body = request.get_json()
     request_body["planet_id"] = planet.id
 
-    try:
-        new_moon = Moon.from_dict(request_body)
-    except:
-        response = {"message": f"Invalid request: mising {error.args[0]}"}
-        abort(make_response(response, 400))
-    
-    db.session.add(new_moon)
-    db.session.commit()
-
-    return make_response(new_moon.to_dict(), 201)
+    return create_model(Moon, request_body)

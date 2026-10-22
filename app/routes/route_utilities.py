@@ -1,3 +1,4 @@
+import math
 from flask import abort, make_response
 from sqlalchemy import asc, desc
 from ..db import db
@@ -57,13 +58,41 @@ def get_models_with_filters(cls, filters=None, order_by=None):
     if filters and isinstance(filters, dict):
         for column, value in filters.items():
             # LESS THAN / MAX VALUE CASE
-            if column.endswith(".max") and hashattr(cls, column[:-4]):
-                query.where(getattr(cls, column[:-4]) <= value)
+            if column.endswith(".max") and hasattr(cls, column[:-4]):
+                try:
+                    max_value = float(value)
+                except ValueError:
+                    abort(make_response(
+                        {"message": f"{column} must be a number"}, 
+                        400
+                    ))
+
+                if not math.isfinite(max_value):
+                    abort(make_response(
+                        {"message": f"{column} must be a finite number"}, 
+                        400
+                    ))
+                print(column)
+                query = query.where(getattr(cls, column[:-4]) <= max_value)
             # GREATER THAN / MIN VALUE CASE
-            elif column.endswith(".min") and hashattr(cls, column[:-4]):
-                query.where(getattr(cls, column[:-4]) >= value)
+            elif column.endswith(".min") and hasattr(cls, column[:-4]):
+                try:
+                    min_value = float(value)
+                except ValueError:
+                    abort(make_response(
+                        {"message": f"{column} must be a number"}, 
+                        400
+                    ))
+
+                if not math.isfinite(min_value):
+                    abort(make_response(
+                        {"message": f"{column} must be a finite number"}, 
+                        400
+                    ))
+                print(column)
+                query = query.where(getattr(cls, column[:-4]) >= min_value)
             # STANDARD CASE_INSENSITIVE LIKE CASE
-            elif hashattr(cls, column):
+            elif hasattr(cls, column):
                 query = query.where(getattr(cls, column).ilike(f"%{value}%"))
 
 
@@ -87,6 +116,6 @@ def get_models_with_filters(cls, filters=None, order_by=None):
 
 
     models = db.session.scalars(query)
-    models_response = [models.to_dict() for model in models]
+    models_response = [model.to_dict() for model in models]
 
     return models_response

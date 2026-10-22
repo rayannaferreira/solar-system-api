@@ -152,13 +152,13 @@ def test_filter_planets_by_description(client, add_two_planet):
             "id": 2,
             "name": "Earth",
             "description": "Third planet from the Sun, with liquid water on its surface",
-            "distance_from_sun": 149600000,
+            "distance_from_sun": 149600000.0,
         }
     ]
 
 
 def test_filter_planets_by_max_distance(client, add_two_planet):
-    response = client.get("/planets?max_distance=60000000")
+    response = client.get("/planets?distance_from_sun.max=60000000")
 
     assert response.status_code == 200
     assert response.get_json() == [
@@ -166,13 +166,13 @@ def test_filter_planets_by_max_distance(client, add_two_planet):
             "id": 1,
             "name": "Mercury",
             "description": "Smallest planet, closest to the Sun",
-            "distance_from_sun": 57910000,
+            "distance_from_sun": 57910000.0,
         }
     ]
 
 
 def test_filter_planets_by_min_distance(client, add_two_planet):
-    response = client.get("/planets?min_distance=100000000")
+    response = client.get("/planets?distance_from_sun.min=100000000")
 
     assert response.status_code == 200
     assert response.get_json() == [
@@ -180,6 +180,6 @@ def test_filter_planets_by_min_distance(client, add_two_planet):
             "id": 2,
             "name": "Earth",
             "description": "Third planet from the Sun, with liquid water on its surface",
-            "distance_from_sun": 149600000,
+            "distance_from_sun": 149600000.0,
         }
     ]

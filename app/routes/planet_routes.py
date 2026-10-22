@@ -1,9 +1,8 @@
-import math
 from flask import Blueprint, abort, make_response, request, Response
 from app.models.planet import Planet
 from ..db import db
 from .planet_moons_routes import planet_moons_bp
-from .route_utilities import validate_model
+from .route_utilities import validate_model, create_model, get_models_with_filters
 
 planets_bp = Blueprint("planets_bp", __name__, url_prefix="/planets")
 
@@ -18,57 +17,9 @@ def get_all_planets():
     HTTP 200 - OK.
     """
     
-    query = db.select(Planet)
+    response = get_models_with_filters(Planet, request.args)
 
-    name = request.args.get("name")
-    if name:
-        query = query.where(Planet.name.ilike(f"%{name}%"))
-
-    description = request.args.get("description")
-    if description:
-        query = query.where(Planet.description.ilike(f"%{description}%"))
-
-    max_distance = request.args.get("max_distance")
-    min_distance = request.args.get("min_distance")
-
-    if max_distance is not None:
-        try:
-            max_distance = float(max_distance)
-        except ValueError:
-            abort(make_response({
-                "message": "max_distance must be a number"
-            }, 400))
-
-        if not math.isfinite(max_distance):
-            abort(make_response({
-            "message": "max_distance must be a finite number"
-        }, 400))       
-             
-        query = query.where(
-            Planet.distance_from_sun <= max_distance
-        )
-
-    if min_distance is not None:
-        try:
-            min_distance = float(min_distance)
-        except ValueError:
-            abort(make_response({
-                "message": "min_distance must be a number"
-            }, 400))
-
-        if not math.isfinite(min_distance):
-            abort(make_response({
-                "message": "min_distance must be a finite number"
-            }, 400))
-
-        query = query.where(
-            Planet.distance_from_sun >= min_distance
-        )
-
-    query = query.order_by(Planet.id)
-    planets = db.session.execute(query).scalars()
-
-    return [planet.to_dict() for planet in planets], 200
+    return response
 
 
 
@@ -102,11 +53,7 @@ def create_planet():
         if field not in request_body:
             return {"message": f"Missing field: {field}"}, 400
 
-    new_planet = Planet.from_dict(request_body)
-    db.session.add(new_planet)
-    db.session.commit()
-
-    return new_planet.to_dict(), 201
+    return create_model(Planet, request_body)
 
 
 @planets_bp.put("/<planet_id>")
