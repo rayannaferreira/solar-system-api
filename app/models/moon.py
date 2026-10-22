@@ -20,7 +20,8 @@ class Moon(db.Model):
             "name": self.name,
             "description": self.description,
             "size": self.size,
-            "is_tidal_locked": self.is_tidal_locked
+            "is_tidal_locked": self.is_tidal_locked,
+            "planet_id": self.planet_id
         }
     
     @classmethod
