@@ -1,6 +1,6 @@
 import math
 from flask import abort, make_response
-from sqlalchemy import asc, desc
+from sqlalchemy import desc
 from ..db import db
 
 
@@ -99,10 +99,10 @@ def get_models_with_filters(cls, filters=None, order_by=None):
     if order_by:
         descending = False
 
-        if order_by.endswith(".desc") and hashattr(cls, order_by[:-5]):
+        if order_by.endswith(".desc") and hasattr(cls, order_by[:-5]):
             order_column = getattr(cls, order_by[:-5])
             descending = True
-        elif order_by.endswith(".asc") and hashattr(cls, order_by[:-4]):
+        elif order_by.endswith(".asc") and hasattr(cls, order_by[:-4]):
             order_column = getattr(cls, order_by[:-4])
         elif hasattr(cls, order_by):
             order_column = getattr(cls, order_by)

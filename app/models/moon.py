@@ -10,7 +10,7 @@ class Moon(db.Model):
 
     # belongs to Planet relationship
     planet_id: Mapped[int] = mapped_column(ForeignKey("planet.id"))
-    planet: Mapped["Planet"] = relationship(back_populates="moons")
+    planet: Mapped["Planet"] = relationship(back_populates="moons") # noqa: F821
 
     def to_dict(self):
         """Return the planet's attributes as a dictionary."""

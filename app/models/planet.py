@@ -10,7 +10,7 @@ class Planet(db.Model):
     distance_from_sun: Mapped[float]
 
     # has many Moon relationship
-    moons: Mapped[List["Moon"]] = relationship(back_populates="planet")
+    moons: Mapped[List["Moon"]] = relationship(back_populates="planet") # noqa: F821
 
     
     def to_dict(self):
