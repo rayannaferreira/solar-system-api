@@ -1,4 +1,5 @@
 from flask import abort, make_response
+from sqlalchemy import asc, desc
 from ..db import db
 
 
@@ -48,18 +49,42 @@ def create_model(cls, model_data):
 def get_models_with_filters(cls, filters=None, order_by=None):
     """Construct a select query for the provided model with optional filters
     or order_by column and return a list of matching model dictionaries.
+
+        get_models_with_filters(Planet, {"name": "Pluto", "distance_from_sun.min": 300}, "name.desc")
     """
     query = db.select(cls)
 
     if filters and isinstance(filters, dict):
         for column, value in filters.items():
-            if hashattr(cls, column):
+            # LESS THAN / MAX VALUE CASE
+            if column.endswith(".max") and hashattr(cls, column[:-4]):
+                query.where(getattr(cls, column[:-4]) <= value)
+            # GREATER THAN / MIN VALUE CASE
+            elif column.endswith(".min") and hashattr(cls, column[:-4]):
+                query.where(getattr(cls, column[:-4]) >= value)
+            # STANDARD CASE_INSENSITIVE LIKE CASE
+            elif hashattr(cls, column):
                 query = query.where(getattr(cls, column).ilike(f"%{value}%"))
 
-    if order_by and hasattr(cls, order_by):
-        query = query.order_by(getattr(cls, order_by))
-    else:
-        query = query.order_by(cls.id)
+
+    if order_by:
+        descending = False
+
+        if order_by.endswith(".desc") and hashattr(cls, order_by[:-5]):
+            order_column = getattr(cls, order_by[:-5])
+            descending = True
+        elif order_by.endswith(".asc") and hashattr(cls, order_by[:-4]):
+            order_column = getattr(cls, order_by[:-4])
+        elif hasattr(cls, order_by):
+            order_column = getattr(cls, order_by)
+        else:
+            order_column = cls.id
+        
+        if descending:
+            query = query.order_by(desc(order_column))
+        else:
+            query = query.order_by(order_column)
+
 
     models = db.session.scalars(query)
     models_response = [models.to_dict() for model in models]
