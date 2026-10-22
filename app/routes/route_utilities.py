@@ -43,3 +43,22 @@ def create_model(cls, model_data):
     db.session.commit()
 
     return new_model.to_dict(), 201
+
+
+def get_models_with_filters(cls, filters=None, order_by=None):
+    query = db.select(cls)
+
+    if filters and isinstance(filters, dict):
+        for column, value in filters.items():
+            if hashattr(cls, column):
+                query = query.where(getattr(cls, column).ilike(f"%{value}%"))
+
+    if order_by and hasattr(cls, order_by):
+        query = query.order_by(getattr(cls, order_by))
+    else:
+        query = query.order_by(cls.id)
+
+    models = db.session.scalars(query)
+    models_response = [models.to_dict() for model in models]
+
+    return models_response
