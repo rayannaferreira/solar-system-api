@@ -10,7 +10,9 @@ planet_moons_bp = Blueprint("planet_moons_bp", __name__)
 
 @planet_moons_bp.get("")
 def get_moons_from_planet(planet_id):
-    pass
+    planet = validate_model(Planet, planet_id)
+    response = [moon.to_dict() for moon in planet.moons]
+    return response
 
 @planet_moons_bp.post("")
 def add_moon_to_planet(planet_id):
