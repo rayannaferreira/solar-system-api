@@ -46,6 +46,9 @@ def create_model(cls, model_data):
 
 
 def get_models_with_filters(cls, filters=None, order_by=None):
+    """Construct a select query for the provided model with optional filters
+    or order_by column and return a list of matching model dictionaries.
+    """
     query = db.select(cls)
 
     if filters and isinstance(filters, dict):
