@@ -7,7 +7,7 @@ from flask.signals import request_finished
 from app import create_app
 from app.db import db
 from app.models.planet import Planet
-
+from app.models.moon import Moon
 
 load_dotenv()
 
@@ -66,4 +66,17 @@ def add_two_planet(app):
     )
 
     db.session.add_all([planet_1, planet_2])
+    db.session.commit()
+
+@pytest.fixture
+def add_two_planets_and_one_moon(app, add_two_planet):
+    moon = Moon(
+        name="Luna",
+        size=3475,
+        description="Earth's only natural satellite",
+        is_tidal_locked=True,
+        planet_id=2,
+    )
+
+    db.session.add(moon)
     db.session.commit()
